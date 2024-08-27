@@ -2,9 +2,13 @@ import math
 import sys
 import numpy as np
 import os
+import pandas as pd
 
 from scipy.stats import binom, norm, chi2
 from scipy import stats
+from rich.console import Console
+
+console = Console()
 
 def get_user_float_input(prompt:str="Enter a floating point number :", default:float=0.0, least:float=None, most:float=None) -> float:
     """
@@ -60,7 +64,7 @@ def get_user_int_input(prompt:str="Enter an integer (whole number) :", default:i
             if user_input == '' and default is not None:
                 return int(default)
             elif user_input == '':
-                print("There is no default value, you must give it an integer value, try again.")
+                console.print([red]"There is no default value, you must give it an integer value, try again.[/red]")
             else:
               value = int(user_input)  
               if least is not None and value < least:
@@ -98,11 +102,11 @@ def get_user_yes_or_no_input(prompt:str="Enter Y (yes) or N (no)", default:str='
         print("Invalid input. Please enter either Y or N.")
 # end of get_user_yes_or_no_input function         
 
-def get_user_filename_input(prompt:str="Enter a file name(iwth optional path/directory)", default:str=None,mode:str="R" ) -> str:
+def get_user_filename_input(prompt:str="Enter a file name(with optional path/directory)", default:str=None, mode:str="R" ) -> str:
     """
     Get from the user a file name and return it if it is valid. Use a default value if provided. Check that
        the file can be used according to the mode:
-         if the mode = "R" or "RW" then the file must exist and be readableas it will be read
+         if the mode = "R" or "RW" then the file must exist and be readable as it will be read
          if the mode = "W" then the file might not exist, which is OK as it will be created and written to
          
     
@@ -125,7 +129,7 @@ def get_user_filename_input(prompt:str="Enter a file name(iwth optional path/dir
             return user_input
 # end of get_user_filename_input function        
 
-def get_user_helper_type(prompt:str="What helper do you want? (lower case, type exit to get out",default:str="diff of proportions") -> str:
+def get_user_helper_type(prompt:str="What helper do you want? (first letter is OK, type exit to get out",default:str="wilcox") -> str:
    
     while True:
         try:
@@ -144,14 +148,15 @@ def get_user_helper_type(prompt:str="What helper do you want? (lower case, type 
                        "d":"diff of proportions",
                        "h":"helper types",
                        "r":"regression",
+                       "w":"wilcox",
                        "e":"exit"}  # dictionary of abbreviations 
             if value in abbrev : # if a valid abbreviation
                return abbrev[value] # return the expanded text for the abbreviation
-            else: #  value not in ["n", "c", "l", "b", "t", "p", "d", "h", "r", "e"]
+            else: #  value not in ["n", "c", "l", "b", "t", "p", "d", "h", "r", "e", "w"]
               print("invalid value. Here are the acceptable values")
               print_command_codes("helper types")
-              print(" : [normal, chi2, linear, binomial, table, proportion, diff of proportions, regression, helper types, exit]")
-              print(" : [n, c, l, b, t, p, d, r, h, e] \n")
+              print(" : [normal, chi2, linear, binomial, table, proportion, diff of proportions, regression, wilcox, helper types, exit]")
+              print(" : [n, c, l, b, t, p, d, r, w, h, e] \n")
           else:  
             return value # otherwise it is OK, so return it 
         except ValueError:
@@ -162,7 +167,7 @@ def get_user_helper_type(prompt:str="What helper do you want? (lower case, type 
 
 def print_command_codes(helper_type:str="diff of proportions"):
     if helper_type == "diff of proportions":
-      print("Available command codes (for each loop iteration) for Difference of proportions helper (n1, n2 samples):")
+      console.print("[blue][b][u]Available command codes ([i]for each loop iteration[/i]) for Difference of proportions helper[/b][/u] (n1, n2 samples):[/blue] ")
       print("1 = Calculates the chance for a certain number of successes (or more) given alpha (significance level), for the current N, p values")
       print("2 = Calculates a confidence interval for current N,p values")
       print("3 = Enter a new set of N, p values")
@@ -245,16 +250,31 @@ def print_command_codes(helper_type:str="diff of proportions"):
         print("10 = enter a new value for the number of DECIMAL places to which final answers should be rounded.")
         print("11 = print this command codes list again")
         print("0 = stop and exit the loop")
+    elif helper_type == "wilcox":
+        print("Command codes (for each loop iteration of Wilcoxon signed-rank test for paired values: ")
+        print("1 = enter a new set of paired values (optionally read them from a CSV file)")
+        print("2 = display the values are being used, optionally save them to a file")
+        print("3 = correct the set of values if there are any typos. ")
+        print("4 = Calculate the T statistic using the SciPy library of functions")
+        print("5 = Not Implemented - future expansion")
+        print("6 = Not Implemented - future expansion")
+        print("7 = Calculate and print all the statistics (W, p, ...) for the current data set")
+        print("8 = Perform a significance test/lookup crititcal W values")
+        print("9 = Not implemented - future expansion")
+        print("10 = enter a new value for the number of DECIMAL places to which final answers should be rounded.")
+        print("11 = print this command codes list again")
+        print("0 = stop and exit the loop")
     elif helper_type == "helper types":
-      print(" We have the following helper types available as of now:")
+      print(" We have the following helper modules available as of now:")
       print("chi2 = Chi-squared test helper (continuous: goodness of fit tests)")
-      print("normal = Normal Distribution helper (continuous): bell curve problems")
+      print("normal = Normal Distribution helper (continuous): bell curve problems)")
       print("linear = Linear or flat distribution  (continuous: a straight line distribution)")
       print("binomial = Binomial (discrete) distribution (success/fail trials) and its normal approximation")
       print("table = problems involving a table of values (discrete)")
       print("proportion =  Problems involving a proportion (N trials, K successes, p = probability) and a single sample")
       print("diff of proportions = Problems in Chapter 6, a difference of proportions from 2 samples, n1, n2, p1, p2 etc.)")
       print("Regression = Chapter 8 Problems with linear regression, least squares fit, and correlation coefficients")
+      print("Wilcox = Wilcoxon signed rank test for paired data (non-parametric test)")
       print("helper types = Lets you chose (or switch) which type of helper you want to use.")
       print("exit = indicates you are done and want to exit the program")
     else:
@@ -815,7 +835,7 @@ def normal_helper():   # normal distribution helper
           code = 2
           future_code = 8  # return to this code after setting the parameters
           continue # go back and loop again
-        lower = get_user_float_inputinput("Enter the lower value ( lower limit of interval) :",None)
+        lower = get_user_float_input("Enter the lower value ( lower limit of interval) :",None)
         upper = get_user_float_input("Enter the upper value (upper limit of interval):",None,lower) # no smaller than lower  
         zlow = (lower - mean)/sdev
         zhigh = (upper - mean)/sdev
@@ -859,7 +879,7 @@ def normal_helper():   # normal distribution helper
           future_code = code # return to this code after setting the parameters
           code = 2 # go set the parms
           continue # go back and loop again
-        alpha = get_user_float_input("Enter the significance level alpha:",NONE,0.00001,0.4)
+        alpha = get_user_float_input("Enter the significance level alpha:",None,0.00001,0.4)
         x = get_user_float_input("Enter the X value to be tested for significance:",None,None,None)  
         z = (x-mean)/sdev
         prob = norm.cdf(z)
@@ -907,8 +927,8 @@ def normal_helper():   # normal distribution helper
       elif code == 14:
           print("Given two Z values (interval) find the probability of being between them or outside of that interval (two tails)")
           z_low = get_user_float_input("Enter the lower (left) Z-value limit? --> :",None)
-          z_high = get_user_float_input("Enter the upper (right) Z-value limit? --> :",None,Z_low)
-          between = norm.cdf(Z_high) - norm.cdf(Z_low) # area between them
+          z_high = get_user_float_input("Enter the upper (right) Z-value limit? --> :",None,z_low)
+          between = norm.cdf(z_high) - norm.cdf(z_low) # area between them
           outside = 1 - between
           print(f"Between {z_low} and {z_high} we find a probability of {round(between,r)}")
           print(f"Outside of that interval (adding both left and right tails) we have {round(outside,r)} of the probability")
@@ -1271,7 +1291,7 @@ def regression_helper():
     import matplotlib.pyplot as plt
  
     print("Python Chapter 8 helper for regression, least squares, and correlation problems")
-    print("This helper is still in progress, not finished yet")
+    print(" note that the default is for the normal Y on X (Y as a function of X) statistics")
     xlist = [0.0]
     ylist = [0.0]
     xnormlist = [0.0]
@@ -1354,6 +1374,7 @@ def regression_helper():
         xlist[:] = {}  # clear out all the arrays (Python lists)
         ylist[:] = {}
         n = 0 # no data so far
+        tot_xdev2 = 0.0 # sum of all X deviations squared (used only for reverse X on Y statistics)
         answer = get_user_yes_or_no_input("Do you have a CSV file of data you want read (answer Yes) or will you type in the data (answer No [dflt])> --> : ","N")
         if answer == "N": # let the user type in the points (pairs of x and y values)
             n = get_user_int_input("How many different points (x and y pairs) do you have to enter? ==> : ",None,2)
@@ -1575,29 +1596,31 @@ def regression_helper():
             print(f" We have total variation={round(var_total,r)}, unexplained variation ={round(var_unexplained,r)}, explained variation={round(var_explained,r)}")
             z = 0.5*math.log((1+R)/(1-R))
             print(f" Fisher's Z statistic for this R value is {round(z,r)}")
-            print("----------")
-            tot_xdev2 = 0.0
-            print("The regression line above was based on Y as a function of X (Y as the dependent variable, X as the independent one)")
-            print("We can also calculate the reverse function,  X as a function of Y where X is considered the variable that depends on Y (the independent var)")
-            print("For example,  we can examine the weight of people (dependent) as a function of their height (independent), W=f(H) but we can look at the reverse situation of Height (dependent) as a function of Weight (independent) H = g(W)")
-            print("The correlation coefficient is the same for both, but the regression line for the reverse function is different ")
-            denom = n*totaly2-totaly**2
-            if denom == 0:
-              print(f"The denominator {denom} is 0, can not compute values")
-            else:
-              rev_intercept = (totalx*totaly**2 - totaly*totalxy)/denom
-              rev_slope = (float(n)*totalxy-totalx*totaly)/denom
-              print(f" The best fitting X on Y line (least-squares over X) has intercept={round(rev_intercept,r)} and slope={round(rev_slope,r)}")
-              if rev_slope > 0:
-                print(f" You can write it (without rounding) as X_hat = {rev_intercept} + {rev_slope}*Y")
-              else:
-                print(f" You can write it (without rounding) as X_hat = {rev_intercept} - {abs(rev_slope)}*Y")
-              for k in range(n):
-                x_est = rev_slope*ylist[k]+rev_intercept # calculate the estimated or x-hat value based on the reverse regression line         
-                tot_xdev2 += (xlist[k]-x_est)**2
-              rev_SE = math.sqrt(tot_xdev2/float(n))
-              print(f" The reverse SE or the Standard Error of estimate of X on Y is={round(rev_SE,r)} or {rev_SE}")
-            # end if denominator is 0 or not   
+            answer=get_user_yes_or_no_input("Do you want to see the reverse data (X as a function of Y)? (No is the default answer) ==> : ","N")
+            if answer=="Y": # OK, then calculate and print the data for X on Y
+                print("----------")
+                print("The regression line above was based on Y as a function of X (Y as the dependent variable, X as the independent one)")
+                print("We can also calculate the reverse function,  X as a function of Y where X is considered the variable that depends on Y (the independent var)")
+                print("For example,  we can examine the weight of people (dependent) as a function of their height (independent), W=f(H) but we can look at the reverse situation of Height (dependent) as a function of Weight (independent) H = g(W)")
+                print("The correlation coefficient is the same for both, but the regression line for the reverse function is different ")
+                denom = n*totaly2-totaly**2
+                if denom == 0:
+                  print(f"The denominator {denom} is 0, can not compute values")
+                else:
+                  rev_intercept = (totalx*totaly**2 - totaly*totalxy)/denom
+                  rev_slope = (float(n)*totalxy-totalx*totaly)/denom
+                  print(f" The best fitting X on Y line (least-squares over X) has intercept={round(rev_intercept,r)} and slope={round(rev_slope,r)}")
+                  if rev_slope > 0:
+                    print(f" You can write it (without rounding) as X_hat = {rev_intercept} + {rev_slope}*Y")
+                  else:
+                    print(f" You can write it (without rounding) as X_hat = {rev_intercept} - {abs(rev_slope)}*Y")
+                  for k in range(n):
+                    x_est = rev_slope*ylist[k]+rev_intercept # calculate the estimated or x-hat value based on the reverse regression line         
+                    tot_xdev2 += (xlist[k]-x_est)**2
+                  rev_SE = math.sqrt(tot_xdev2/float(n))
+                  print(f" The reverse SE or the Standard Error of estimate of X on Y is={round(rev_SE,r)} or {rev_SE}")
+                # end if denominator is 0 or not
+            # end if the user wanted reverse, X = g(Y), stats in addition to the normal Y = f(X)stats    
             answer = get_user_yes_or_no_input("Do you want to see a plot of the data? (Y or N [dflt]) --> : ","N")
             if answer == "Y": # try to plot it
               plt.scatter(xlist, ylist) # scatterplot of all the points
@@ -1667,13 +1690,478 @@ def regression_helper():
       code = get_user_int_input("Enter the command code (0, or 1-11) :",0,0,11)    
     return 0
 
+# end of regression_helper 
+
+def wilcox_helper():
+    
+    global w, p, data_crunched, xlist, ylist, dlist, sign, rank, has_zeroes, absdlist, muw, sw
+    import matplotlib
+ 
+    import matplotlib.pyplot as plt
+ 
+    print("Python Chapter 8 helper for Wilcoxon Signed-Rank Test problems")
+    print(" still being developed and enhanced")
+    xlist = [0.0]
+    ylist = [0.0]
+    dlist = [0.0]
+    absdlist = [0.0]
+    sign = [0]
+    rank = [0.0]
+    data_from_file = False
+    table = [(0,0,0,0)]
+    table[:] = {} # empty it
+
+
+    data_crunched = False # show that we have not computed any data for a set of (x,y) pairs yet
+    
+    def crunch_data(): # process an existing set of x,y points 
+      global w, p, data_crunched, xlist, ylist, dlist, sign, rank, has_zeroes,absdlist,muw,sw,st,zw, altT
+      smallest = 0
+      next_smallest = 0
+      has_zeroes = False
+      
+            
+      dlist[:] = {}  # clear out all the calculated data arrays, differences array
+      absdlist[:] = {}  # clear out all the calculated data arrays, absolute values of differences
+      sign[:] = {}
+      rank[:] = {}
+      copy = [0]
+      copy[:] = {}
+      
+      if n!=0: # if we do have data
+          zeroes = 0
+          j = 0
+          for k in range(n): #loop through all the data, computing intermediate values  
+            d = round(xlist[k] - ylist[k],r)
+            if d == 0:
+                has_zeroes = True
+                dlist.append(0)
+                absdlist.append(0)
+                sign.append(0)
+                zeroes +=1
+                rank.append(0.0)
+            else:
+                dlist.append(d)
+                copy.append(k)
+                if d > 0:
+                  absdlist.append(d)
+                  sign.append(1)
+                else:
+                  absdlist.append(-d)
+                  sign.append(-1)
+                rank.append(-1.0)
+          # end of for loop loading arrays       
+          sortlist = [0]
+          sortlist[:]={}
+          sorted = zeroes  # count the zeroes as sorted
+          correction = 0
+          # print("dlist")
+          # print(dlist)
+          # print("absdlist")
+          # print(absdlist)
+##          print("sign, rank,copy")
+##          print(sign,rank,copy)
+          while(sorted < n):
+            smallest = 0
+##            print(f"in the while loop sorted={sorted} smallest={smallest} len(copy)={len(copy)}")
+##            print("first copy and then sortlist")
+##            print(copy)
+##            print(sortlist)
+            for k in range(len(copy)):
+              #print(f"k={k} copy[{k}]={copy[k]} smallest={smallest} copy[{smallest}]={copy[smallest]}")
+##              print(f"k={k} smallest={smallest} ")
+##              print(f"copy[{k}]={copy[k]}")
+##              print(f"copy[{smallest}]={copy[smallest]}")
+              #print(f"{absdlist[copy[k]]} compared to {absdlist[copy[smallest]]}")
+              if absdlist[copy[k]] < absdlist[copy[smallest]]:
+                 smallest = k
+            # end find the next smallest
+            #print(f"smallest={smallest} ")
+            sortlist.append(copy[smallest])
+            sorted += 1
+            copy.pop(smallest) # remove the sorted one
+          # end of while loop to sort them (into sortlist) 
+          # we have the sorted array,  now assign ranks
+          # print("sortlist")
+          # print(sortlist)
+          current = len(sortlist)
+          k = len(sortlist)-1
+          # print("rank before")
+          # print(rank)
+          while(k>=0):
+            # print("k current =",k,current)  
+            if k > 0:
+               same = 1
+               value = current
+               for j in range(k-1,0,-1): # check for ties, same rank
+                 if absdlist[sortlist[k]]==absdlist[sortlist[j]]: # same rank
+                   value += current - same   
+                   same += 1
+                 else:
+                   break # done, get out
+                 # print(f"same={same} value = {value}")
+               if same==1: # only 1 value
+                 rank[sortlist[k]]=float(current)
+#                 print(f"rank[{sortlist[k]}]={current}")
+#                 print(rank)
+               else: # one or more tied ranks(equal values)
+                 fvalue = float(value)/float(same) # calculate average rank
+                 correction += same**3 - same # calculate C value used to correct parameters
+                 for j in range(same):
+                   rank[sortlist[k-j]] = fvalue
+                   #print(f"same={same} value={value} j={j} k={k} rank[{sortlist[k-j]}]={fvalue}")
+                   #print(rank)
+               current -= same  
+               k -= same
+            else:
+              rank[sortlist[0]] = current
+              k -= 1
+          # end while loop on k to assign ranks
+#          print(rank)
+          # calculate the W statistic 
+          w,p,t_plus,t_minus = 0,0,0,0 
+          for i in range(n):   # loop through to calculawte T+ andf T-
+            if dlist[i] < 0: # if negative, addi it to the T- sum               
+              t_minus += rank[i]
+            else:
+              t_plus += rank[i]
+          w = min(t_minus, t_plus)
+          altT= t_plus - t_minus # alternate test statistic for single sided tests
+          muw = n*(n+1)/4 - zeroes*(zeroes+1)/4  # expected value of (T+) 
+          var = (n*(n+1)*(2*n+1) - zeroes*(zeroes+1)*(2*zeroes+1) - correction/2)/6
+          st = math.sqrt(var)    # this is the standard deviation for T 
+          sw = math.sqrt(var/4)  # this is the standard deviation for T+ 
+          zw = (w - muw)/sw  # z value for this T+
+          data_crunched = True  # show that it has been done 
+      else:
+          print("***ERROR, no data has been entered yet, can not compute intermediate values")
+          return 0
+    # end of internal subroutine to crunch data    
+    
+    
+    r = get_user_int_input("Round to how many decimal places? : ",4,1,9)
+    n = 0 # no data points so far
+    print_command_codes("wilcox")
+    code = get_user_int_input("Enter the command code (0, or 1-11) :",1,0,11)
+
+    while(code > 0):
+      if code == 1:
+        print(f"You will now enter a new set of data points to be analyzed")
+        data_crunched = False # ignore any computed values from previous data
+        xlist[:] = {}  # clear out all the arrays (Python lists)
+        ylist[:] = {}
+        n = 0 # no data so far
+        tot_xdev2 = 0.0 # sum of all X deviations squared (used only for reverse X on Y statistics)
+        answer = get_user_yes_or_no_input("Do you have a CSV file of data you want read (answer Yes) or will you type in the data (answer No [dflt])> --> : ","N")
+        if answer == "N": # let the user type in the points (pairs of x and y values)
+            n = get_user_int_input("How many different matched values (var1 and var2 pairs) do you have to enter? ==> : ",None,2)
+            for k in range(n):
+              print(f"Point #{k+1}")
+              x = get_user_float_input(" what is the value of x (var1)? ==> : ",None)
+              y = get_user_float_input(" Enter the value of y (var2) matched with this x)? ==> : ",None)
+              xlist.append(x)
+              ylist.append(y)
+            data_from_file = False # it was entered manually, not from a file  
+        else:  # will read from a file
+            filename = ""
+            answer="Y"
+            while(answer == "Y" and filename == ""):
+              filename = get_user_filename_input("What is the name of the file (include directory/path info if needed)? ==> : ", "c:\\Users\\User\\wweb1.csv","R")
+              if os.path.isfile(filename): # if this file exists
+                answer = "N"
+              else:
+                print(f"Operating systems reports that file {filename} does not exist")
+                filename = ""
+                answer = get_user_yes_or_no_input("Do you want to try again with a different file name? (default = Yes) --> : ","Y")
+            # end of looping while the file name is not good
+            if filename =="": # still no file name
+               print("Will terminate operation, use command code 1 if you want to try it again")
+               code = 11
+               continue # go back to the top of the command loop
+            print("filename = ",filename)
+            df=pd.read_csv(filename)
+            print(df)
+            with open(filename, 'r') as f:
+              k = 0
+              hdr1 = ""
+              for line in f: # for all lines in the file process each one individually, in order
+                if "," not in line:
+                  print(f" ** ERROR line#{k+1} of the file does not contain a ',' (comma). All lines should be in the format x,y (point coordinates)")
+                elif hdr1 == "" : # if it is the first line (no header yet) 
+                  print(f"The file header line {line} will be set aside")
+                  pos = line.index(",") # find the position of the comma
+                  hdr1 = line[0:pos] # get everything up to the comma
+                  hdr2 = line[pos+1::] # get the rest of the line
+                  print(f"The line has the headers: {hdr1} and {hdr2}")
+                  if hdr1[0]=='"':
+                    var = hdr1[1:-1] # strip the quotes, first and last character
+                    hdr1 = var
+                    var = hdr2[1:-2] # strip the quotes, first and last character and also the newline char
+                    hdr2 = var
+                  elif hdr2[len(hdr2)-1] == "\n": # has a new line at the end
+                    hdr2=hdr2[0:-1]
+                    print("cleaned up hdr2")
+                else: # it must be a regular data line:  x,y separate them and make sure they are numbers
+                  pos = line.index(",") # find the position of the comma
+                  xpart = line[0:pos] # get everything up to the comma
+                  x = float(xpart.strip())
+                  ypart = line[pos+1::] # get the rest of the line
+                  y = float(ypart.strip())
+                  xlist.append(x)
+                  ylist.append(y)
+                  k+=1 # increment counter
+              # end for all lines in the file, process them one by one
+              print(f"Have read {k} pairs of actual data\n")
+            # end of file processing (will be automatically closed by WITH statement)
+            data_from_file = True # remember we read it from a file  
+            n = k # remember how many points we read
+        # end of If user typed ... else read from file.    
+      elif code == 2: # print the points entered
+        print(f"You have entered {n} x,y pairs (points).")
+        answer = get_user_yes_or_no_input("Do you want to see all of them(answer Yes, dflt) or only a subset of them (N)? --> : ","Y")
+        if answer=="Y" and data_from_file:
+          print(df)
+          for k in range(n):
+            print(f" X[{k+1}]={xlist[k]}, Y[{k+1}]={ylist[k]}")
+        elif answer=="Y":   
+          for k in range(n):
+            print(f" X[{k+1}]={xlist[k]}, Y[{k+1}]={ylist[k]}")
+        else:
+          start = get_user_int_input("What is the first point you want to see (1 is the dflt)> ==> : ",1,1,n)
+          stop = get_user_int_input("What is the last point you want to see (N is the dflt)> ==> : ",n,start,n)
+          print(f"Here are the values in the {start} to {stop} range :")
+          for k in range(start, stop):
+            print(f" X[{k}]={xlist[k-1]}, Y[{k}]={ylist[k-1]}")
+        if not data_from_file: # if this data was not read from a file     
+          answer = get_user_yes_or_no_input("Do you want to save this current data into a CSV file? (Y or N [dflt]) --> : ","N")
+          if answer == "Y":
+            filename = get_user_filename_input("What is the file name to use (careful if it exists it will be overwritten losing existing contents)? ==> : ",None,"W")
+            with open(filename, 'a') as f:
+              f.write('"x","y"\n') # write the header
+              for k in range(n): # for all pairs of values
+                line = str(xlist[k])+","+str(ylist[k])+"\n" # create an x,y string with a newline character at the end
+                f.write(line)
+              # end for all pairs of values
+            # end of file writing (will be automatically closed by WITH statement)
+        answer = get_user_yes_or_no_input("Do you want to see a plot of this data? (Y or N [dflt]) --> : ","N")
+        if answer == "Y": # try to plot it
+          plt.scatter(xlist, ylist) # scatterplot of all the points
+          plt.show()
+      elif code == 3: # correct some of the points entered
+        answer = get_user_yes_or_no_input("Do you wish to correct any of the entered points? (enter yes if so) --> ","N") 
+        count = 0
+        while(answer=="Y"): # keep correcting until done
+          count += 1 # increment count of corrections made
+          k = get_user_int_input("Which point (#) do you want to correct? ==> : ",None,1,n)    
+          print(f"Currently point #{k} has values X[{k}]={xlist[k-1]}, Y[{k}]={ylist[k-1]}")
+          x = get_user_float_input(" Enter the correct X value for this entry ==> : ",None)
+          k = k - 1 # make it a python index value (starts at 0)
+          if xlist[k] != x: # if a different value
+              xlist[k] = x
+              data_crunched = False # forget all the calculated values, no longer valid
+              data_from_file = False # this is manually corrected so if it ever was from a file it is no longer.
+          y = get_user_float_input("Enter the correct Y value for this point ==> : ",None)
+          if ylist[k] != y: # if a different value
+              ylist[k] = y
+              data_crunched = False # forget all the calculated values, no longer valid
+              data_from_file = False # no longer matches any file (manual entry)
+          answer = get_user_yes_or_no_input("Do you wish to correct any other points in the table? (enter yes [dflt] if so) --> ","Y")         
+        # end of while (still want to make changes) loop
+        print(f"You have made {count} changes to points. Use command code 2 to check the data table again.")
+        #code = 2 # force the next code to be a print of the final table  
+        #continue # skip back to the start of the command loop  
+      elif code == 4: # calculate W using whatever is easiest
+        if data_from_file: # if the data was read from a file (is in pandas format)
+          print(f"We will use SciPy to calculate things")
+          diff = np.array(df[hdr1] - df[hdr2])
+          print("The differences are: ")
+          print(diff)
+          diff_no_ties = np.delete(diff, np.where(diff == 0))
+          print("0 differences (if any) will be removed from the data")
+          print(diff_no_ties)
+          res = stats.wilcoxon(diff_no_ties, alternative="greater")
+          print(f"The W statistic {round(res.statistic,r)} or {res.statistic}")
+          w = res.statistic
+          print(f" The P value for the Greater option is {round(res.pvalue,r)} or {res.pvalue}")
+          pg = res.pvalue
+          res = stats.wilcoxon(diff_no_ties, alternative="less")
+          print(f" The P value for the Less option is {round(res.pvalue,r)} or {res.pvalue}")
+          pl = res.pvalue
+          res = stats.wilcoxon(diff_no_ties, alternative="two-sided")
+          print(f" The P value for the Two-sided option is {round(res.pvalue,r)} or {res.pvalue}")
+          pt = res.pvalue
+          p = pt
+        elif n != 0: # if we do have some data
+          res = stats.wilcoxon(xlist,ylist, alternative="greater")
+          print(f"The W statistic is {round(res.statistic,r)} or {res.statistic}")
+          w = res.statistic
+          print(f" The P (greater) value is {round(res.pvalue,r)} or {res.pvalue}")
+          p = res.pvalue
+        else:
+          print("There is no data entered yet, so we can not calculate R. Enter some points first.\n")
+          code = 1
+          continue # go back to the top of the loop again and do code 1
+      elif code == 5: # calculate R using formula #2 (with means and standard deviations)
+        print("code 5 is not yet implemented")  
+      elif code == 6:
+         print("code 6 is not yet implemented")  
+      elif code == 7:  # dump calculated values
+        if data_crunched == False and n!=0: # not calculated but we have data
+          crunch_data() # calculate it now
+        # print("rank")
+        # print(rank)    
+        if n==0 : # there is no data
+            print("There is no data entered yet, so we can not calculate R. Enter some points first.\n")
+            code = 1
+            continue # go back to the top of the loop again and do code 1
+        else:
+            print(f"We have a total of {n} pairs of values entered")
+            if data_from_file:
+              print(f"  This data was entered from a file named {filename}")
+            print(f" The test statistic W is = {round(w,r)} (or {w})")
+            res = stats.wilcoxon(xlist,ylist, alternative="greater")
+            pg = res.pvalue
+            res = stats.wilcoxon(xlist,ylist, alternative="less")
+            pl = res.pvalue
+            res = stats.wilcoxon(xlist,ylist, alternative="two-sided")
+            pt = res.pvalue
+            p = pt
+            print(f" The P value is = {round(p,r)} or {p}")
+            print("The full set of p-values from the SciPy.stats wilcoxon function is:")
+            print(f"P for Greater option = {pg}, P less is = {pl}, P two-sided is ={pt}")
+            print(f" The alternative test statistic for one-sided tests is = {round(altT,r)}")
+            print(f"  For the T statistic the expected value is 0 and the sdev is {round(st,r)}")
+            print(f"  For the T+ statistic the expected value is {round(muw,r)} and the sdev is {round(sw,r)}")
+            print(f"  For the T+ statistic the Z value is {round(zw,r)} (without any continuity correction)")
+
+            if has_zeroes:
+              print(f" The data had zero differences (or zero values for a single set) which were ignored per Wilcoxon recommendation.")
+            else:
+              print(f" There were no zero differences. Nothing had to be ignored.")             
+            
+            answer=get_user_yes_or_no_input("Do you want to see the arrays of intermediate values calculated (differences, ranks)? (No is the default answer) ==> : ","N")
+            if answer=="Y": # show everything 
+                for k in range(n):
+                  if dlist[k] == 0: # differences of 0 are bad, are ignored
+                    print(f"diff[{k+1}]={dlist[k]} --> For entry {k+1} the difference was 0")
+                  else:
+                    print(f"diff[{k+1}]={dlist[k]}  sign[{k+1}]={sign[k]}  |diff[{k+1}]|={abs(dlist[k])}  rank[{k+1}] = {rank[k]}")
+                    
+                #end looping through the arrays    
+            # end if the user wanted a data dump    
+            answer = get_user_yes_or_no_input("Do you want to see a plot of the data? (Y or N [dflt]) --> : ","N")
+            if answer == "Y": # try to plot it
+              plt.scatter(xlist, ylist) # scatterplot of all the points              
+              plt.show()
+      elif code == 8: 
+        print(" Look up a critical W value using a table.")
+        print(" Reject the null hypothesis (no difference) if your test statistic (W) value is less than or equal to the critical value")
+        # table = [(0,0,0,0), (1,4,8,16)]
+        # print(table)
+        # print(table[1])
+        # print(table[1][3])
+        # print("α")
+        # load table of critical values   
+        table.append((-1,-1,-1,-1))
+        table.append((-1,-1,-1,-1))
+        table.append((-1,-1,-1,-1))
+        table.append((-1,-1,-1,-1))
+        table.append((-1,-1,-1,-1))
+        table.append((1,-1,-1,-1))
+        table.append((2,1,-1,-1))
+        table.append((4,2,0,-1))
+        table.append((6,4,2,1))
+        table.append((8,6,3,2))
+        table.append((11,8,5,3))
+        table.append((14,11,7,5))
+        table.append((17,14,10,7))
+        table.append((21,17,13,10))
+        table.append((26,21,16,13))
+        table.append((30,25,20,16))
+        table.append((36,30,24,19))
+        table.append((41,35,28,23))
+        table.append((47,40,33,28))
+        table.append((54,46,38,32))
+        table.append((60,52,43,37))
+        table.append((68,59,49,43))
+        table.append((75,66,56,49))
+        table.append((83,73,62,55))
+        table.append((92,81,69,61))
+        table.append((101,90,77,68))
+        table.append((110,98,85,76))
+        table.append((120,107,93,84))
+        table.append((130,117,102,92))
+        table.append((141,127,111,100))
+        table.append((152,137,120,109))
+        answer=get_user_yes_or_no_input("Do you want to see the table of critical values? (No is the default answer) ==> : ","N")
+        if answer=="Y": # show everything 
+          print("Values of -1 indicate an undefined entry (table can not provide an answer)")
+          print("One tail   |	α=0.05 | α=0.025 | α=0.01	| α=0.005")
+          print("Two tailed |	α=0.1  | α=0.05  | α=0.02	| α=0.01 ")
+          print(" N         |	       |         |       	|")
+          for k in range(len(table)):
+            if table[k][0] == -1: # no data in this row, skip it 
+              pass
+            else:
+              print(f"  {k}        |     {table[k][0]}     |    {table[k][1]}    |     {table[k][2]}     |   {table[k][3]}  ")
+          #end looping through and printing the table    
+        # end if the user wanted a table dump 
+        answer=get_user_yes_or_no_input("Do you want to look up a critical value in the table? (Yes is the default answer) ==> : ","Y")
+        if answer=="Y": # look it up
+          print("Select the type of test: 1 = One tail test, r = Two-tailed test")
+          test_type = get_user_int_input("Are you interested in a 1-tail test (1) [dflt] or 2-tailed test? ==> : ",1,1,2)
+          print("Now select the significance level, alpha (α) value, (only a limited set of possible values is available)") 
+          if test_type == 1: # for a single tail test
+            alphas = [0.05, 0.025, 0.01, 0.005]
+            print(" Choose one of 1: α=0.05  2: α=0.025 3: α=0.01  4: α=0.005")
+            alpha = get_user_int_input("do you want 1 (0.05) [dflt] or 2 (0.025 or 3 (0.01) or 4 (0.005) ? ==> : ",1,1,4)
+          else:
+            alphas = [0.1, 0.05, 0.02, 0.01]
+            print(" Choose one of 1: α=0.1   2: α=0.05 3: α=0.02  4: α=0.01")
+            alpha = get_user_int_input("do you want 1 (0.1) or 2 (0.05) [dflt] or 3 (0.02) or 4 (0.01) ? ==> : ",2,1,4) 
+          if n!=0 and data_crunched:  # if we have the needed stats
+            answer=get_user_yes_or_no_input("Do you want to use the current data values for the look up? (Yes is the default answer) ==> : ","Y")
+          else:
+            answer="N" # ask for the needed values 
+          if answer == "N": 
+            n_temp = get_user_int_input("Enter the number of matched pairs of data (N) ==> : ", None,2)
+            w_temp = get_user_float_input(" What is the test statistic (W) that you want to test against the critical value? ==> : ", None,1.0)
+          else: # use the current values
+            n_temp = n
+            w_temp = w        
+          if test_type == 1:
+            print(f" We are looking up a critical W value for a one-tail test, for an alpha={alphas[alpha-1]}")
+          else:
+            print(f" We are looking up a critical W value for a two-tailed test, for an alpha={alphas[alpha-1]}")
+          w_critical = table[n_temp][alpha-1]  
+          alpha = alphas[alpha-1]  # get the real fraction, instead of the index value
+          print(f"The critical W value for N={n_temp} and for alpha(α)={alpha} is {w_critical}")
+          if w_temp <= w_critical:
+            print(f"Your test statistic W {w_temp} is less than or = to the critical value, so you MUST REJECT the null hypothesis at the {alpha} significance level")
+          else:
+            print(f"Your test statistic W {w_temp} is greater than the critical value, so you CAN NOT reject the null hypothesis at the {alpha} significance level")   
+      elif code == 9:
+        print(f" Code {code} has not yet been implemented.")     
+      elif code == 10:
+        r = get_user_int_input("Round to how many decimal places? : ",4,1,9)  
+      elif code == 11:
+        print_command_codes("wilcox")
+      elif code == 0:
+        return 0
+      else:
+        print("invalid code ", code, " . Should be 0 (to exit) or 1 to 11")
+        print_command_codes("wilcox")
+      code = get_user_int_input("Enter the command code (0, or 1-11) :",0,0,11)    
+    return 0
+# end of wilcox_helper module
+
 def main():
-    print("Universal Python Helper")
-    print("You must first choose which helper you want to use (you can change later to a different one")
-    print("select the option  exit  if you want to stop and exit the program")
-    print("here is the list of available helpers (not all may have been implemented yet):")
+    print("Universal Python Helper for statistics problems in an introductory course")
+    print("You must first choose which helper you want to use (you can change later to a different one\n  and run as many helpers, as many times as you want)")
+    print("Select the option  exit  (or just e ) if you want to stop and exit the program")
+    print("Here is the list of available helpers (not all may have been fully implemented yet):")
     print_command_codes("helper types")
-    helper_type = get_user_helper_type("What helper do you want to use? (all lower case, type exit to get out ? : ","diff of proportions")
+    helper_type = get_user_helper_type("What helper do you want to use? (first letter is acceptable, type exit to get out) ? : ","diff of proportions")
     while  not (helper_type == "exit"):
       if helper_type == "diff of proportions":
         diff_prop_helper() # call the chapter 6 difference of proportions helper 
@@ -1691,6 +2179,8 @@ def main():
         proportion_helper()
       elif helper_type == "regression":
         regression_helper()
+      elif helper_type == "wilcox":
+        wilcox_helper()  
       elif helper_type == "helper types":
         print_command_codes(helper_type)
       else:
